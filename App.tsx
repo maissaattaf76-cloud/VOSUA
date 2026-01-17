@@ -25,36 +25,36 @@ const App: React.FC = () => {
     const timer = setInterval(() => {
       setStats({
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        latency: `${Math.floor(Math.random() * 10) + 12}ms`
+        latency: `${Math.floor(Math.random() * 8) + 10}ms`
       });
-    }, 10000);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className={`flex flex-col lg:flex-row h-[100dvh] w-full bg-transparent overflow-hidden transition-all duration-1000 ${isHyperDrive ? 'brightness-[1.1] contrast-[1.1]' : ''}`}>
+    <div className={`flex flex-col h-[100dvh] w-full bg-black overflow-hidden transition-all duration-1000 ${isHyperDrive ? 'brightness-110 contrast-110' : ''}`}>
       
-      {/* HUD Bar - Mobile Optimized "Dynamic Island" */}
-      <div className="absolute top-0 left-0 w-full z-[100] px-4 pt-safe pointer-events-none">
-        <div className="flex justify-center mt-2">
-          <div className="h-10 px-6 glass-obsidian rounded-full flex items-center justify-between gap-8 border border-emerald-500/20 shadow-2xl pointer-events-auto min-w-[280px] lg:min-w-[340px] transition-all duration-700 hover:scale-[1.02]">
-            <div className="flex items-center gap-2.5">
+      {/* Universal HUD - Compact for Mobile */}
+      <header className="fixed top-0 left-0 w-full z-[100] px-4 pt-safe pointer-events-none">
+        <div className="flex justify-center mt-3">
+          <div className="h-10 px-5 glass-mobile rounded-full flex items-center justify-between gap-6 border border-emerald-500/10 shadow-2xl pointer-events-auto min-w-[280px] max-w-md transition-all duration-500 active:scale-[0.98]">
+            <div className="flex items-center gap-2">
                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-               <span className="text-[9px] font-orbitron font-black text-white tracking-[0.2em] uppercase">VOSUA <span className="text-emerald-500">Ω</span></span>
+               <span className="text-[10px] font-orbitron font-black text-white tracking-widest uppercase">VOSUA <span className="text-emerald-500">Ω</span></span>
             </div>
             
-            <div className="flex items-center gap-4 text-[7px] font-black text-emerald-800 uppercase tracking-widest font-mono">
-               <span>{stats.latency}</span>
-               <span className="opacity-40">|</span>
-               <span>{stats.time}</span>
+            <div className="flex items-center gap-3 text-[8px] font-black text-emerald-800 uppercase tracking-widest font-mono">
+               <span className="opacity-80">{stats.latency}</span>
+               <span className="opacity-20">|</span>
+               <span className="text-emerald-500/60">{stats.time}</span>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 h-full relative z-10">
-        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-700 ${previewCode ? 'lg:mr-[40%]' : ''} pt-16 pb-20 lg:pb-0`}>
+      {/* Viewport Engine */}
+      <main className="flex-1 relative z-10 flex flex-col pt-16 pb-24 overflow-hidden">
+        <div className="flex-1 relative overflow-hidden transition-all duration-500">
             {activeMode === 'chat' && <ChatInterface version="42.5" persona={activePersona} onPreviewCode={setPreviewCode} />}
             {activeMode === 'vision' && <ImageGenInterface />}
             {activeMode === 'voice' && <VoiceInterface hasKey={true} onKeyRequest={()=>{}} onArchitectCode={setPreviewCode} />}
@@ -66,7 +66,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Navigation Dock - Mobile Bottom / Desktop Left */}
+      {/* Native-Style Bottom Navigation */}
       <Sidebar 
         activeMode={activeMode} 
         onModeChange={setActiveMode} 
