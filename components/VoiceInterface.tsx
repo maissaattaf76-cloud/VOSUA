@@ -1,0 +1,211 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
+import { VoiceTranscription } from '../types';
+
+interface VoiceInterfaceProps {
+  hasKey: boolean;
+  onKeyRequest: () => void;
+  onArchitectCode?: (code: string | null) => void;
+}
+
+const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ hasKey, onKeyRequest, onArchitectCode }) => {
+  const [isActive, setIsActive] = useState(false);
+  const [transcriptions, setTranscriptions] = useState<VoiceTranscription[]>([]);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [speechRate, setSpeechRate] = useState(1.0);
+  
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const nextStartTimeRef = useRef(0);
+  const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
+  const sessionRef = useRef<any>(null);
+
+  const encode = (bytes: Uint8Array) => {
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  };
+
+  const decode = (base64: string) => {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+    return bytes;
+  };
+
+  const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number) => {
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+    for (let channel = 0; channel < numChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < frameCount; i++) channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+    return buffer;
+  };
+
+  const extractCode = (text: string) => {
+    const htmlMatch = text.match(/```(?:html|xml|typescript|javascript|tsx|jsx)\n([\s\S]*?)```/);
+    if (htmlMatch) return htmlMatch[1];
+    return null;
+  };
+
+  const startSession = async () => {
+    if (isActive || isConnecting) return;
+    setIsConnecting(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+      const outputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      audioContextRef.current = outputCtx;
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const sessionPromise = ai.live.connect({
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        callbacks: {
+          onopen: () => {
+            const source = inputCtx.createMediaStreamSource(stream);
+            const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
+            scriptProcessor.onaudioprocess = (e) => {
+              const inputData = e.inputBuffer.getChannelData(0);
+              const int16 = new Int16Array(inputData.length);
+              for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
+              sessionPromise.then(session => {
+                session.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } });
+              });
+            };
+            source.connect(scriptProcessor);
+            scriptProcessor.connect(inputCtx.destination);
+            setIsActive(true);
+            setIsConnecting(false);
+          },
+          onmessage: async (msg: LiveServerMessage) => {
+            const base64Audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+            if (base64Audio) {
+              const ctx = audioContextRef.current!;
+              nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
+              const buffer = await decodeAudioData(decode(base64Audio), ctx, 24000, 1);
+              const source = ctx.createBufferSource();
+              source.buffer = buffer;
+              source.connect(ctx.destination);
+              source.start(nextStartTimeRef.current);
+              nextStartTimeRef.current += buffer.duration;
+              sourcesRef.current.add(source);
+              source.onended = () => sourcesRef.current.delete(source);
+            }
+
+            if (msg.serverContent?.inputTranscription) {
+              const text = msg.serverContent.inputTranscription.text;
+              setTranscriptions(prev => [...prev.slice(-10), { text, role: 'user' }]);
+            }
+            if (msg.serverContent?.outputTranscription) {
+              const text = msg.serverContent.outputTranscription.text;
+              setTranscriptions(prev => [...prev.slice(-10), { text, role: 'assistant' }]);
+              const code = extractCode(text);
+              if (code && onArchitectCode) onArchitectCode(code);
+            }
+
+            if (msg.serverContent?.interrupted) {
+              sourcesRef.current.forEach(s => s.stop());
+              sourcesRef.current.clear();
+              nextStartTimeRef.current = 0;
+            }
+          },
+          onerror: () => { setIsActive(false); setIsConnecting(false); },
+          onclose: () => { setIsActive(false); setIsConnecting(false); }
+        },
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
+          inputAudioTranscription: {},
+          outputAudioTranscription: {},
+          systemInstruction: `You are VOSUA Sonic Core v26.4. You are an elegant, high-speed neural assistant. Cadence: ${speechRate}x.`
+        }
+      });
+      
+      sessionRef.current = await sessionPromise;
+    } catch (e) {
+      console.error(e);
+      setIsConnecting(false);
+    }
+  };
+
+  const stopSession = () => {
+    if (sessionRef.current) {
+      sessionRef.current.close();
+      sessionRef.current = null;
+    }
+    setIsActive(false);
+  };
+
+  return (
+    <div className="h-full flex flex-col items-center justify-center bg-transparent p-4 lg:p-6 relative overflow-hidden font-arabic">
+      <header className="absolute top-8 lg:top-12 flex flex-col items-center gap-2">
+         <span className="text-[8px] lg:text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] font-orbitron">Neural Sonic Bridge</span>
+         <div className="flex gap-1 h-2 items-center">
+           {[...Array(6)].map((_, i) => (
+             <div key={i} className={`w-1 rounded-full bg-blue-500/30 transition-all duration-300 ${isActive ? 'animate-[wave_1.2s_infinite]' : 'h-1'}`} style={{ animationDelay: `${i * 0.15}s` }} />
+           ))}
+         </div>
+      </header>
+
+      <div className="max-w-md w-full flex flex-col items-center gap-8 lg:gap-12 relative z-10">
+        <div className="relative group">
+          <div className={`w-40 h-40 lg:w-56 lg:h-56 rounded-full border-2 transition-all duration-1000 flex items-center justify-center relative ${
+            isActive ? 'border-blue-500 shadow-[0_0_80px_rgba(59,130,246,0.3)] scale-110' : 'border-white/10'
+          }`}>
+            <div className={`w-32 h-32 lg:w-48 lg:h-48 rounded-full overflow-hidden flex items-center justify-center glass-ios-heavy border border-white/10 ${isActive ? 'bg-black/80' : 'bg-black/40'}`}>
+              <div className="relative w-full h-full flex items-center justify-center">
+                 {isActive && (
+                   <div className="absolute inset-0 flex items-center justify-center opacity-60">
+                      <div className="w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-[wave_2s_infinite] scale-y-150" />
+                   </div>
+                 )}
+                 <svg className={`w-12 h-12 lg:w-16 lg:h-16 transition-all duration-700 relative z-10 ${isActive ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                 </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full p-4 lg:p-6 glass-ios rounded-[1.5rem] lg:rounded-[2rem] border-white/10 space-y-4 shadow-xl">
+          <div className="flex justify-between items-center">
+            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest font-orbitron">Cadence</span>
+            <div className="px-3 py-1 bg-blue-600/10 rounded-full border border-blue-500/20 text-[10px] font-mono font-black text-blue-400">
+              {speechRate.toFixed(1)}x
+            </div>
+          </div>
+          <input 
+            type="range" min="0.5" max="2.0" step="0.1" value={speechRate} 
+            onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+            className="w-full h-1 bg-white/10 rounded-full appearance-none accent-blue-600"
+            disabled={isActive}
+          />
+        </div>
+
+        <div className="w-full h-16 flex flex-col items-center justify-center px-4 text-center">
+          {transcriptions.length > 0 && (
+            <p className="text-[11px] lg:text-xs text-blue-400 font-bold tracking-tight italic line-clamp-2">
+              "{transcriptions[transcriptions.length - 1].text}"
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={isActive ? stopSession : startSession}
+          disabled={isConnecting}
+          className={`w-48 lg:w-56 py-4 lg:py-5 rounded-full font-black uppercase text-[10px] tracking-[0.2em] transition-all ios-button shadow-2xl ${
+            isActive ? 'bg-red-500 text-white' : 'bg-white text-black hover:bg-blue-600 hover:text-white'
+          }`}
+        >
+          {isActive ? 'Disconnect' : isConnecting ? 'Aligning...' : 'Initiate'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default VoiceInterface;

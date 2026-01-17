@@ -1,0 +1,8 @@
+{
+  "name": "VOSUA Ω Pro - Emerald Obsidian Elite",
+  "description": "The peak of high-fidelity Emerald Obsidian AI. Quantum-grade intelligence with a ChatGPT-inspired workflow.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

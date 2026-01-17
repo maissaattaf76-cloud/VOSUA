@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="ar" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>VOSUA Ω | Obsidian Elite Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&family=Orbitron:wght@400;600;900&family=Noto+Sans+Arabic:wght@100;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --emerald: #10b981;
+        --obsidian: #000000;
+        --surface: #0a0c0a;
+      }
+
+      body {
+        font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif;
+        background-color: var(--obsidian);
+        color: #ecfdf5;
+        overflow: hidden;
+        margin: 0;
+        height: 100vh;
+        width: 100vw;
+        -webkit-font-smoothing: antialiased;
+        overscroll-behavior: none;
+        position: fixed;
+      }
+
+      /* Ultra-Deep Glassmorphism for Mobile */
+      .glass-mobile {
+        background: rgba(10, 20, 15, 0.7);
+        backdrop-filter: blur(25px) saturate(200%);
+        -webkit-backdrop-filter: blur(25px) saturate(200%);
+        border: 1px solid rgba(16, 185, 129, 0.15);
+      }
+
+      .emerald-glow {
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+      }
+
+      .font-arabic { font-family: 'Noto Sans Arabic', sans-serif; }
+      .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+
+      .floating-dock {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 48px);
+        max-width: 400px;
+        border-radius: 28px;
+        z-index: 1000;
+      }
+
+      .ios-button { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+      .ios-button:active { transform: scale(0.92); opacity: 0.7; }
+
+      /* Hide default scrollbars but allow scrolling */
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      ::selection { background: rgba(16, 185, 129, 0.3); color: white; }
+
+      /* Code Editor Specific Mobile Styles */
+      .code-textarea {
+        -webkit-text-fill-color: transparent;
+        caret-color: var(--emerald);
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "jszip": "https://esm.sh/jszip@3.10.1",
+    "prismjs": "https://esm.sh/prismjs@1.29.0",
+    "prismjs/components/prism-markup.js": "https://esm.sh/prismjs@1.29.0/components/prism-markup.js",
+    "prismjs/components/prism-css.js": "https://esm.sh/prismjs@1.29.0/components/prism-css.js",
+    "prismjs/components/prism-javascript.js": "https://esm.sh/prismjs@1.29.0/components/prism-javascript.js",
+    "prismjs/": "https://esm.sh/prismjs@^1.30.0/"
+  }
+}
+</script>
+  </head>
+  <body class="pt-safe">
+    <div id="root"></div>
+  </body>
+</html>
