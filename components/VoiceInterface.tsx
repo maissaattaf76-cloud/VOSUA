@@ -44,12 +44,6 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ hasKey, onKeyRequest, o
     return buffer;
   };
 
-  const extractCode = (text: string) => {
-    const htmlMatch = text.match(/```(?:html|xml|typescript|javascript|tsx|jsx)\n([\s\S]*?)```/);
-    if (htmlMatch) return htmlMatch[1];
-    return null;
-  };
-
   const startSession = async () => {
     if (isActive || isConnecting) return;
     setIsConnecting(true);
@@ -95,18 +89,12 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ hasKey, onKeyRequest, o
               sourcesRef.current.add(source);
               source.onended = () => sourcesRef.current.delete(source);
             }
-
             if (msg.serverContent?.inputTranscription) {
-              const text = msg.serverContent.inputTranscription.text;
-              setTranscriptions(prev => [...prev.slice(-10), { text, role: 'user' }]);
+              setTranscriptions(prev => [...prev, { text: msg.serverContent.inputTranscription.text, role: 'user' }]);
             }
             if (msg.serverContent?.outputTranscription) {
-              const text = msg.serverContent.outputTranscription.text;
-              setTranscriptions(prev => [...prev.slice(-10), { text, role: 'assistant' }]);
-              const code = extractCode(text);
-              if (code && onArchitectCode) onArchitectCode(code);
+              setTranscriptions(prev => [...prev, { text: msg.serverContent.outputTranscription.text, role: 'assistant' }]);
             }
-
             if (msg.serverContent?.interrupted) {
               sourcesRef.current.forEach(s => s.stop());
               sourcesRef.current.clear();
@@ -121,10 +109,9 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ hasKey, onKeyRequest, o
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
           inputAudioTranscription: {},
           outputAudioTranscription: {},
-          systemInstruction: `You are VOSUA Sonic Core v26.4. You are an elegant, high-speed neural assistant. Cadence: ${speechRate}x.`
+          systemInstruction: `You are VOSUA Sonic. Elite neural assistant. Mode: Emerald.`
         }
       });
-      
       sessionRef.current = await sessionPromise;
     } catch (e) {
       console.error(e);
@@ -132,77 +119,82 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ hasKey, onKeyRequest, o
     }
   };
 
-  const stopSession = () => {
-    if (sessionRef.current) {
-      sessionRef.current.close();
-      sessionRef.current = null;
-    }
-    setIsActive(false);
+  const handleExportTranscriptions = () => {
+    if (transcriptions.length === 0) return;
+    
+    const content = transcriptions.map(t => 
+      `${t.role === 'user' ? 'USER' : 'VOSUA'}: ${t.text}`
+    ).join('\n');
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vosua-sonic-transcript-${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center bg-transparent p-4 lg:p-6 relative overflow-hidden font-arabic">
-      <header className="absolute top-8 lg:top-12 flex flex-col items-center gap-2">
-         <span className="text-[8px] lg:text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] font-orbitron">Neural Sonic Bridge</span>
-         <div className="flex gap-1 h-2 items-center">
-           {[...Array(6)].map((_, i) => (
-             <div key={i} className={`w-1 rounded-full bg-blue-500/30 transition-all duration-300 ${isActive ? 'animate-[wave_1.2s_infinite]' : 'h-1'}`} style={{ animationDelay: `${i * 0.15}s` }} />
-           ))}
+    <div className="h-full flex flex-col items-center justify-center p-6 bg-transparent font-arabic relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/10 blur-[100px] rounded-full animate-pulse" />
+      
+      <div className="relative z-10 flex flex-col items-center gap-12 max-w-md w-full">
+         <div className="text-center space-y-2">
+            <h2 className="text-3xl font-orbitron font-black text-white">SONIC<span className="text-emerald-500"> Ω</span></h2>
+            <p className="text-[10px] text-emerald-800 font-bold uppercase tracking-[0.5em]">Neural Voice Bridge</p>
          </div>
-      </header>
 
-      <div className="max-w-md w-full flex flex-col items-center gap-8 lg:gap-12 relative z-10">
-        <div className="relative group">
-          <div className={`w-40 h-40 lg:w-56 lg:h-56 rounded-full border-2 transition-all duration-1000 flex items-center justify-center relative ${
-            isActive ? 'border-blue-500 shadow-[0_0_80px_rgba(59,130,246,0.3)] scale-110' : 'border-white/10'
+         <div className={`w-64 h-64 rounded-full border-2 transition-all duration-1000 flex items-center justify-center relative ${
+            isActive ? 'border-emerald-500 shadow-[0_0_100px_rgba(16,185,129,0.2)] scale-110' : 'border-white/5'
           }`}>
-            <div className={`w-32 h-32 lg:w-48 lg:h-48 rounded-full overflow-hidden flex items-center justify-center glass-ios-heavy border border-white/10 ${isActive ? 'bg-black/80' : 'bg-black/40'}`}>
+            <div className={`w-56 h-56 rounded-full glass-premium flex items-center justify-center overflow-hidden ${isActive ? 'bg-black/80' : 'bg-black/20'}`}>
               <div className="relative w-full h-full flex items-center justify-center">
                  {isActive && (
-                   <div className="absolute inset-0 flex items-center justify-center opacity-60">
-                      <div className="w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-[wave_2s_infinite] scale-y-150" />
+                   <div className="absolute inset-0 flex items-center justify-center gap-1">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="w-1.5 bg-emerald-500 rounded-full animate-[wave_1s_infinite]" style={{ height: `${Math.random() * 60 + 20}%`, animationDelay: `${i * 0.1}s` }} />
+                      ))}
                    </div>
                  )}
-                 <svg className={`w-12 h-12 lg:w-16 lg:h-16 transition-all duration-700 relative z-10 ${isActive ? 'text-white' : 'text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                 </svg>
+                 {!isActive && (
+                    <svg className="w-20 h-20 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                 )}
               </div>
             </div>
-          </div>
-        </div>
+         </div>
 
-        <div className="w-full p-4 lg:p-6 glass-ios rounded-[1.5rem] lg:rounded-[2rem] border-white/10 space-y-4 shadow-xl">
-          <div className="flex justify-between items-center">
-            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest font-orbitron">Cadence</span>
-            <div className="px-3 py-1 bg-blue-600/10 rounded-full border border-blue-500/20 text-[10px] font-mono font-black text-blue-400">
-              {speechRate.toFixed(1)}x
-            </div>
-          </div>
-          <input 
-            type="range" min="0.5" max="2.0" step="0.1" value={speechRate} 
-            onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
-            className="w-full h-1 bg-white/10 rounded-full appearance-none accent-blue-600"
-            disabled={isActive}
-          />
-        </div>
+         <div className="h-20 text-center px-6 overflow-y-auto no-scrollbar">
+            {transcriptions.length > 0 && (
+              <p className="text-emerald-400 font-bold text-sm leading-relaxed animate-in fade-in slide-in-from-bottom-2 italic">
+                "{transcriptions[transcriptions.length - 1].text}"
+              </p>
+            )}
+         </div>
 
-        <div className="w-full h-16 flex flex-col items-center justify-center px-4 text-center">
-          {transcriptions.length > 0 && (
-            <p className="text-[11px] lg:text-xs text-blue-400 font-bold tracking-tight italic line-clamp-2">
-              "{transcriptions[transcriptions.length - 1].text}"
-            </p>
-          )}
-        </div>
-
-        <button
-          onClick={isActive ? stopSession : startSession}
-          disabled={isConnecting}
-          className={`w-48 lg:w-56 py-4 lg:py-5 rounded-full font-black uppercase text-[10px] tracking-[0.2em] transition-all ios-button shadow-2xl ${
-            isActive ? 'bg-red-500 text-white' : 'bg-white text-black hover:bg-blue-600 hover:text-white'
-          }`}
-        >
-          {isActive ? 'Disconnect' : isConnecting ? 'Aligning...' : 'Initiate'}
-        </button>
+         <div className="w-full space-y-3">
+           {transcriptions.length > 0 && (
+             <button
+              onClick={handleExportTranscriptions}
+              className="w-full py-3 rounded-2xl bg-white/5 border border-white/10 text-emerald-500 font-black uppercase text-[9px] tracking-[0.3em] flex items-center justify-center gap-2 transition-all hover:bg-white/10 active:scale-95"
+             >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                تصدير النص
+             </button>
+           )}
+           
+           <button
+            onClick={isActive ? () => { sessionRef.current?.close(); setIsActive(false); } : startSession}
+            disabled={isConnecting}
+            className={`w-full py-5 rounded-full font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl transition-all ios-active ${
+              isActive ? 'bg-red-500/10 border border-red-500/50 text-red-500' : 'bg-emerald-600 text-white'
+            }`}
+          >
+            {isActive ? 'قطع الاتصال العصبوني' : isConnecting ? 'جاري المحاذاة...' : 'بدء الاتصال الحي'}
+          </button>
+         </div>
       </div>
     </div>
   );

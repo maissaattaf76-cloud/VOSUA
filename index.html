@@ -1,83 +1,134 @@
 
 <!DOCTYPE html>
-<html lang="ar" class="dark">
+<html lang="ar">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>VOSUA Ω | Obsidian Elite</title>
+    <title>VOSUA Ω | Ultimate AI OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              emerald: {
+                500: '#10b981',
+                600: '#059669',
+              }
+            }
+          }
+        }
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&family=Orbitron:wght@400;600;900&family=Noto+Sans+Arabic:wght@100;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
       :root {
         --emerald: #10b981;
-        --obsidian: #000000;
-        --surface: #0a0c0a;
+        --emerald-bright: #34d399;
+        --obsidian: #010204;
+        --glass: rgba(5, 8, 5, 0.9);
+        --bg-color: var(--obsidian);
+        --text-color: #f0fdf4;
+      }
+
+      html.light {
+        --bg-color: #ffffff;
+        --text-color: #0a0a0a;
+        --glass: rgba(255, 255, 255, 0.8);
       }
 
       body {
         font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif;
-        background-color: var(--obsidian);
-        color: #ecfdf5;
+        background-color: var(--bg-color);
+        color: var(--text-color);
         overflow: hidden;
         margin: 0;
         height: 100dvh;
         width: 100vw;
         -webkit-font-smoothing: antialiased;
-        overscroll-behavior: none;
         position: fixed;
+        touch-action: manipulation;
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
 
-      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-      .pt-safe { padding-top: env(safe-area-inset-top); }
+      /* Optimized Neural Matrix for Mobile */
+      .neural-canvas {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+        z-index: 0;
+      }
 
-      .glass-mobile {
-        background: rgba(10, 20, 15, 0.75);
+      .grid-pattern {
+        position: absolute;
+        inset: 0;
+        background-image: 
+          linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16, 185, 129, 0.02) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+        transform: perspective(1000px) rotateX(60deg) translateY(-50px);
+        opacity: 0.5;
+      }
+
+      html.light .grid-pattern {
+        opacity: 0.1;
+      }
+
+      .glass-premium {
+        background: var(--glass);
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.12);
       }
 
-      .emerald-glow {
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
-      }
+      .font-arabic { font-family: 'Noto Sans Arabic', sans-serif; }
+      .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
-      .ios-button {
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .ios-button:active {
-        transform: scale(0.95);
-        opacity: 0.8;
-      }
-
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-      @keyframes slide-up {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-      }
+      .ios-active:active { transform: scale(0.95); transition: transform 0.1s ease; }
       
-      .animate-slide-up {
-        animation: slide-up 0.5s cubic-bezier(0.2, 1, 0.2, 1);
+      .emerald-glow-strong {
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+      }
+
+      /* Mobile Safe Area Adjustments */
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+      
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      
+      /* Smooth transitions for mobile tab switching */
+      .page-transition {
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "prismjs/": "https://esm.sh/prismjs@^1.30.0/",
-    "prismjs": "https://esm.sh/prismjs@^1.30.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
-    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "prismjs": "https://esm.sh/prismjs@1.29.0",
+    "prismjs/components/prism-markup.js": "https://esm.sh/prismjs@1.29.0/components/prism-markup.js",
+    "prismjs/components/prism-css.js": "https://esm.sh/prismjs@1.29.0/components/prism-css.js",
+    "prismjs/components/prism-javascript.js": "https://esm.sh/prismjs@1.29.0/components/prism-javascript.js",
+    "jszip": "https://esm.sh/jszip@3.10.1"
   }
 }
 </script>
-</head>
-  <body class="pt-safe">
+  </head>
+  <body>
+    <div class="neural-canvas">
+      <div class="grid-pattern"></div>
+    </div>
     <div id="root"></div>
   </body>
 </html>

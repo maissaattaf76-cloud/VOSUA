@@ -1,6 +1,12 @@
 
-export type AIMode = 'chat' | 'vision' | 'voice' | 'builder';
+export type AIMode = 'chat' | 'vision' | 'voice' | 'builder' | 'video';
 export type AIPersona = 'expert' | 'creative' | 'ghost';
+
+export interface Artifact {
+  type: 'code' | 'image';
+  content: string;
+  title?: string;
+}
 
 export interface SystemSnapshot {
   id: string;
