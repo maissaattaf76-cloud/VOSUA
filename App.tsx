@@ -70,31 +70,31 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-[100dvh] w-full overflow-hidden relative transition-colors duration-300 ${theme === 'dark' ? 'bg-[#010204]' : 'bg-white'}`}>
-      
+    <div className={`flex h-[100dvh] w-full overflow-hidden relative transition-colors duration-300 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+
       {/* HUD - Evolution Engine Header */}
       <div className="fixed top-0 left-0 w-full z-[100] px-4 pt-safe pointer-events-none">
-        <div className={`flex justify-between items-center h-12 backdrop-blur-2xl px-6 rounded-full border border-emerald-500/20 mt-3 pointer-events-auto shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all ${theme === 'dark' ? 'bg-black/60' : 'bg-white/90'}`}>
+        <div className={`flex justify-between items-center h-12 backdrop-blur-2xl px-6 rounded-full border mt-3 pointer-events-auto transition-all ${theme === 'dark' ? 'bg-black/70 border-emerald-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.6)]' : 'bg-white/90 border-emerald-500/20 shadow-[0_10px_40px_rgba(0,0,0,0.1)]'}`}>
            <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping absolute inset-0" />
-                <div className="w-2 h-2 rounded-full bg-emerald-500 relative shadow-[0_0_15px_#10b981]" />
+                <div className="w-2 h-2 rounded-full bg-emerald-500 relative shadow-[0_0_20px_#10b981]" />
               </div>
               <div className="flex flex-col">
                 <span className={`text-[10px] font-orbitron font-black tracking-tighter uppercase ${theme === 'dark' ? 'text-white' : 'text-black'}`}>VOSUA <span className="text-emerald-500">Ω</span> EVOLVING</span>
-                <span className="text-[6px] text-emerald-500/60 font-bold uppercase tracking-[0.2em]">{evoStats.currentTask}</span>
+                <span className={`text-[6px] font-bold uppercase tracking-[0.2em] ${theme === 'dark' ? 'text-emerald-400/70' : 'text-emerald-600/70'}`}>{evoStats.currentTask}</span>
               </div>
            </div>
-           
+
            <div className="flex items-center gap-6">
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-[8px] text-emerald-500 font-black uppercase tracking-widest">LVL: {evoStats.level.toFixed(4)}</span>
-                <span className="text-[6px] text-white/20 font-bold">OPTS: {evoStats.optimizations}</span>
+                <span className={`text-[6px] font-bold ${theme === 'dark' ? 'text-white/30' : 'text-black/30'}`}>OPTS: {evoStats.optimizations}</span>
               </div>
 
-              <button 
+              <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-xl transition-all ios-active ${theme === 'dark' ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-600 hover:bg-emerald-500/5'}`}
+                className={`p-2 rounded-xl transition-all ios-active ${theme === 'dark' ? 'text-emerald-400 hover:bg-emerald-500/15' : 'text-emerald-600 hover:bg-emerald-500/10'}`}
               >
                 {theme === 'dark' ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
@@ -108,10 +108,10 @@ const App: React.FC = () => {
 
       {/* Evolution Side Logs (Floating Desktop) */}
       <div className="fixed right-6 top-24 z-50 pointer-events-none hidden xl:block">
-        <div className="glass-premium p-4 rounded-3xl border border-white/5 w-64 space-y-2 opacity-50 hover:opacity-100 transition-opacity">
-          <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">سجل التطور العصبوني</p>
+        <div className="glass-premium p-4 rounded-3xl border border-emerald-500/20 w-64 space-y-2 opacity-50 hover:opacity-100 transition-opacity shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-3 border-b border-emerald-500/10 pb-2">سجل التطور العصبوني</p>
           {evoLogs.map((log, i) => (
-            <p key={i} className="text-[7px] text-white/40 font-mono animate-in fade-in slide-in-from-right-2" style={{ animationDelay: `${i * 0.1}s` }}>
+            <p key={i} className={`text-[7px] font-mono animate-in fade-in slide-in-from-right-2 ${theme === 'dark' ? 'text-white/50' : 'text-black/50'}`} style={{ animationDelay: `${i * 0.1}s` }}>
               {log}
             </p>
           ))}

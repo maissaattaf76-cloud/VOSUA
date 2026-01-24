@@ -28,21 +28,21 @@
       :root {
         --emerald: #10b981;
         --emerald-bright: #34d399;
-        --obsidian: #010204;
-        --glass: rgba(5, 8, 5, 0.9);
+        --obsidian: #0d1714;
+        --glass: rgba(20, 35, 30, 0.75);
         --bg-color: var(--obsidian);
-        --text-color: #f0fdf4;
+        --text-color: #ffffff;
       }
 
       html.light {
         --bg-color: #ffffff;
         --text-color: #0a0a0a;
-        --glass: rgba(255, 255, 255, 0.8);
+        --glass: rgba(255, 255, 255, 0.85);
       }
 
       body {
         font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif;
-        background-color: var(--bg-color);
+        background: linear-gradient(135deg, #0d1714 0%, #111d1a 50%, #0d1714 100%);
         color: var(--text-color);
         overflow: hidden;
         margin: 0;
@@ -51,38 +51,53 @@
         -webkit-font-smoothing: antialiased;
         position: fixed;
         touch-action: manipulation;
-        transition: background-color 0.3s ease, color 0.3s ease;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      html.light body {
+        background: linear-gradient(135deg, #f5f8f7 0%, #ffffff 50%, #f5f8f7 100%);
       }
 
       /* Optimized Neural Matrix for Mobile */
       .neural-canvas {
         position: fixed;
         inset: 0;
-        background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+        background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.18) 0%, transparent 60%);
         z-index: 0;
+        pointer-events: none;
+      }
+
+      html.light .neural-canvas {
+        background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
       }
 
       .grid-pattern {
         position: absolute;
         inset: 0;
-        background-image: 
-          linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(16, 185, 129, 0.02) 1px, transparent 1px);
+        background-image:
+          linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px);
         background-size: 40px 40px;
         mask-image: radial-gradient(ellipse at center, black, transparent 80%);
         transform: perspective(1000px) rotateX(60deg) translateY(-50px);
-        opacity: 0.5;
+        opacity: 0.8;
       }
 
       html.light .grid-pattern {
-        opacity: 0.1;
+        opacity: 0.2;
       }
 
       .glass-premium {
         background: var(--glass);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid rgba(16, 185, 129, 0.12);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      html.light .glass-premium {
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       }
 
       .font-arabic { font-family: 'Noto Sans Arabic', sans-serif; }
